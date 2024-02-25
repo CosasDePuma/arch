@@ -9,6 +9,7 @@
 # TODO: Detect disks
 # TODO: Swap file
 # TODO: Clean cache files automatically (https://ostechnix.com/recommended-way-clean-package-cache-arch-linux/) (pacman -Scc --noconfirm)
+# TODO: Remove XDG directories (Desktop, Documents, Downloads, Music, Pictures, Public, Templates, Videos)
 
 # =========================================
 # ============== HACKERVERSE ==============
@@ -96,9 +97,9 @@ _user="${HACKVERSE_USER:-hacker}"
 # =============== MODIFIERS ===============
 # =========================================
 
-\set -o errexit
+\set -o errexit # FIXME: Not working ???
 \set -o noglob
-\trap 'log_err "User interrupt. Exiting..."' INT QUIT TERM
+\trap '\log_err "User interrupt. Exiting..."' INT QUIT TERM
 
 
 # =========================================
@@ -373,7 +374,6 @@ install_pkgs_kde() {
     \log_dbg 'Enabling NTP...'; \arch-chroot "${_mountpoint}" /bin/sh -c "systemctl enable ntpd" | \dbg # Network Time Protocol
     \log_dbg 'Enabling acpid...'; \arch-chroot "${_mountpoint}" /bin/sh -c "systemctl enable acpid" | \dbg # Advanced Configuration and Power Interface
     \log_dbg 'Enabling cronie...'; \arch-chroot "${_mountpoint}" /bin/sh -c "systemctl enable cronie" | \dbg # Cron jobs
-    \log_dbg 'Enabling pipewire...'; \arch-chroot "${_mountpoint}" /bin/sh -c "systemctl enable pipewire" | \dbg # Multimedia processing
 }
 
 
