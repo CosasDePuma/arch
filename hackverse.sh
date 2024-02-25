@@ -16,8 +16,6 @@
 # Description: This script installs a minimal Arch Linux system with some hacking tools
 # License: MIT
 # =========================================
-
-# =========================================
 # ============= INSTRUCTIONS ==============
 # =========================================
 # 1. Boot the Arch Linux ISO
@@ -28,16 +26,12 @@
 # 3b. If you want to install the system directly, run:
 #   curl -fsSLo- https://get.hackr.es/ | sh
 # =========================================
-
-# =========================================
 # ============== DISCLAIMER ===============
 # =========================================
 # This script is provided "as is", without warranty of any kind, express or implied, including but not limited to the warranties of merchantability,
 # fitness for a particular purpose and noninfringement. In no event shall the authors or copyright holders be liable for any claim, damages or other
 # liability, whether in an action of contract, tort or otherwise, arising from, out of or in connection with the software or the use or other dealings
 # in the software. Use at your own risk.
-# =========================================
-
 # =========================================
 # =============== WARNINGS ================
 # =========================================
@@ -48,13 +42,10 @@
 # 5. This script is not intended for NVIDIA systems
 # 6. This script is not intended for non-English systems (except Spanish)
 # =========================================
-
-# =========================================
 # =============== CHANGELOG ===============
 # =========================================
 # 2024-02: Initial version
 # =========================================
-
 
 
 # =========================================
@@ -100,7 +91,6 @@ _verbose="${HACKVERSE_VERBOSE:-0}"
 _user="${HACKVERSE_USER:-hacker}"
 
 
-
 # =========================================
 # =============== MODIFIERS ===============
 # =========================================
@@ -140,18 +130,46 @@ log_msg() { >&1 \echo "${*}" | \log | \cut -d '|' -f 2-; }
 verbose() { while IFS= \read -r line; do \test "${_verbose}" -eq 0 || \echo "${line}"; done </dev/stdin; }
 
 
-
 # =========================================
 # ================ CHECKS =================
 # =========================================
 
-# Usage: clean_previous_installation
-# Description: This function cleans the previous installation
-clean_previous_installation() {
-    \log_dbg 'Unmounting partitions...'; \umount -R "${_mountpoint}" 2>&1 | \dbg
-    \log_dbg 'Removing disk partitions...'; \parted /dev/sda rm 1  2>&1 | \dbg; \parted /dev/sda rm 2  2>&1 | \dbg
-    \log_dbg 'Removing partition table...'; \parted /dev/sda mklabel msdos 2>&1 | \dbg
+check_arguments() {
+    check_content() { \test -n "${2}" || \log_err "Option '${1}' requires an argument"; }
+
+    while :; do
+        case "${1}" in
+            -h|--help)
+                \echo "Usage: ${0} [OPTION]..."
+                \echo "Hackverse installer. This script installs a minimal Arch Linux system with some hacking tools"
+                \echo; \echo "Options:";
+                \echo "  -h, --help                 Show this help message";
+                \echo "  -H, --hostname HOSTNAME    Set the hostname (default: hackverse, env: HACKVERSE_HOSTNAME)";
+                \echo "  -l, --locale LOCALE        Set the locale [es,us] (default: us, env: HACKVERSE_LOCALE)";
+                \echo "  -L, --logfile LOG_FILE     Set the log file (default: /var/log/hackverse.log, env: HACKVERSE_LOGFILE)";
+                \echo "  -m, --mountpoint MOUNT     Set the mount point (default: /mnt, env: HACKVERSE_MOUNT)";
+                \echo "  -p, --password PASSWORD    Set the main user password (default: hacker, env: HACKVERSE_PASSWORD)";
+                \echo "  -S, --sumethod METHOD      Set the superuser method [doas,sudo] (default: doas, env: HACKVERSE_SUMETHOD)";
+                \echo "  -T, --timezone TIMEZONE    Set the timezone (default: Europe/Madrid, env: HACKVERSE_TZ)";
+                \echo "  -u, --user USERNAME        Set the main username (default: hacker, env: HACKVERSE_USER)";
+                \echo "  -v, --verbose              Enable verbose mode";
+                \exit 0;;
+            -H|--hostname)  \check_content "${1}" "${2}"; _hostname="${2}";;
+            -l|--locale)    \check_content "${1}" "${2}"; _locale="${2}";;
+            -L|--logfile)   \check_content "${1}" "${2}"; _logfile="${2}";;
+            -m|--mountpoint) \check_content "${1}" "${2}"; _mountpoint="${2}";;
+            -p|--password)  \check_content "${1}" "${2}"; _password="${2}";;
+            -S|--sumethod)  \check_content "${1}" "${2}"; _sumethod="${2}";;
+            -T|--timezone)  \check_content "${1}" "${2}"; _tz="${2}";;
+            -u|--user)      \check_content "${1}" "${2}"; _user="${2}";;
+            -v|--verbose)   _verbose=1;;
+            --) \shift; break;; # End of options
+            *) break;;
+        esac
+        \shift
+    done
 }
+
 
 # Usage: check_connection
 # Description: This function checks if the system has internet connection and DNS resolution. If not, it exits with status 1
@@ -184,11 +202,18 @@ check_superuser() { \test "$(\id -u)" -eq 0 || \log_err "You must be root to run
 # Returns: The hypervisor name if the system is a virtual machine, "Physical" otherwise
 check_vm() { \dmesg | \awk '/Hypervisor detected:/{ print $5 }'; }
 
+# Usage: clean_previous_installation
+# Description: This function cleans the previous installation
+clean_previous_installation() {
+    \log_dbg 'Unmounting partitions...'; \umount -R "${_mountpoint}" 2>&1 | \dbg
+    \log_dbg 'Removing disk partitions...'; \parted /dev/sda rm 1  2>&1 | \dbg; \parted /dev/sda rm 2  2>&1 | \dbg
+    \log_dbg 'Removing partition table...'; \parted /dev/sda mklabel msdos 2>&1 | \dbg
+}
+
 # Usage: if is_uefi; then echo "UEFI"; else echo "BIOS"; fi
 # Description: This function checks if the system is UEFI
 # Returns: 0 if the system is UEFI, 1 otherwise
 is_uefi() { \test -d /sys/firmware/efi; }
-
 
 
 # =========================================
@@ -218,7 +243,6 @@ prepare_disks_dos() {
     \log_dbg 'Formatting partitions...'; \mkfs.fat -F32 /dev/sda1 2>&1 | \dbg; \mkfs.ext4 /dev/sda2 2>&1 | \dbg
     \log_dbg 'Mounting partitions...'; \mount --mkdir /dev/sda2 "${_mountpoint}" | \dbg; \mount --mkdir /dev/sda1 "${_mountpoint}"/boot | \dbg
 }
-
 
 
 # =========================================
@@ -292,7 +316,6 @@ system_cfg_user() {
 }
 
 
-
 # =========================================
 # ============= INSTALLATION ==============
 # =========================================
@@ -339,7 +362,6 @@ install_pkgs_linux() {
 }
 
 
-
 # =========================================
 # =============== SERVICES ================
 # =========================================
@@ -351,7 +373,6 @@ install_service_networkmanager() {
     \log_dbg 'Installing NetworkManager...'; \pacstrap "${_mountpoint}" networkmanager network-manager-applet 2>&1 | \dbg
     \log_dbg 'Enabling NetworkManager...'; \arch-chroot "${_mountpoint}" /bin/sh -c "systemctl enable NetworkManager" | \dbg
 }
-
 
 
 # =========================================
@@ -399,7 +420,6 @@ install_drivers_vm() {
 }
 
 
-
 # =========================================
 # ============== SU METHODS ===============
 # =========================================
@@ -424,12 +444,12 @@ install_su_sudo() {
 }
 
 
-
 # =========================================
 # ============== MAIN SCRIPT ==============
 # =========================================
 
 install_hackerverse() {
+    \check_arguments "${@}"
     \clean_previous_installation
     \check_superuser
     \check_envvars
@@ -453,4 +473,4 @@ install_hackerverse() {
     \log_msg '--------------- |  Hackverse Installed  | ---------------'
     \log_msg "You can now reboot and login as '${_user}' with the password you set."
 }
-\install_hackerverse
+\install_hackerverse "${@}"
