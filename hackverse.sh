@@ -363,9 +363,8 @@ install_pkgs_linux() {
 install_pkgs_kde() {
     \log_msg '----------------- |  Installing KDE   | -----------------'
     \log_dbg 'Installing KDE...'; \pacstrap "${_mountpoint}" 2>&1       \
-        acpid ark cronie dolphin firefox flameshot gwenview             \
-        kcal kinit kitty krunner kvantum                                \
-        noto-fonts ntp okular phonon-qt5 phonon-qt5-vlc                 \
+        acpid ark cronie dolphin firefox flameshot gwenview kcalc kinit \
+        kitty kvantum noto-fonts ntp okular phonon-qt5 phonon-qt5-vlc   \
         pipewire pipewire-alsa pipewire-jack pipewire-pulse             \
         plasma-desktop sddm tlp xf86-input-synaptics xsettingsd wireplumber | \dbg
     \log_dbg 'Enabling SDDM...'; \arch-chroot "${_mountpoint}" /bin/sh -c "systemctl enable sddm" | \dbg # Simple Desktop Display Manager
