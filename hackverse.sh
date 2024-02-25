@@ -1,7 +1,13 @@
 #! /usr/bin/env sh
-# TODO: https://github.com/botsunny/arch-plasma-minimal
-# TODO: https://github.com/SixArm/unix-shell-script-tactics/tree/main/doc/print-output-with-printf-not-echo
-# TODO: https://www.shellcheck.net/
+# Reference: https://github.com/botsunny/arch-plasma-minimal
+# Reference: https://github.com/SixArm/unix-shell-script-tactics/tree/main/doc/print-output-with-printf-not-echo
+# Reference: https://www.shellcheck.net/
+
+# TODO: AUR (paru)
+# TODO: Argument parser
+# TODO: GitHub actions
+# TODO: Detect disks
+# TODO: Swap file
 
 # =========================================
 # ============== HACKERVERSE ==============
@@ -291,15 +297,6 @@ system_cfg_user() {
 # ============= INSTALLATION ==============
 # =========================================
 
-# Usage: install_pkgs_aur
-# Description: This function install the AUR package manager (default: paru)
-install_pkgs_aur() {
-    \log_msg '----------------- |  Installing  AUR  | -----------------'
-    \log_dbg 'Preparing install dir...'; \mkdir -p "${_mountpoint}/opt/arch"; \arch-chroot "${_mountpoint}" /bin/sh -c "chown -R ${_user}: /opt" | \dbg
-    \log_dbg 'Downloading Paru...'; \arch-chroot -u "${_user}" "${_mountpoint}" /bin/sh -c "git clone https://aur.archlinux.org/paru.git /opt/arch/paru" 2>&1 | \dbg
-    \log_dbg 'Compiling Paru...'; \arch-chroot -u "${_user}" "${_mountpoint}" /bin/sh -c "( cd /opt/arch/paru && HOME=/home/${_user} makepkg -si )" 2>/dev/null | \dbg
-}
-
 # Usage: install_pkgs_base
 # Description: This function installs the base and development packages
 install_pkgs_base() {
@@ -453,7 +450,6 @@ install_hackerverse() {
     \system_cfg_sumethod
     \system_cfg_user
     \install_pkgs_dev
-    \install_pkgs_aur
     \log_msg '--------------- |  Hackverse Installed  | ---------------'
     \log_msg "You can now reboot and login as '${_user}' with the password you set."
 }
