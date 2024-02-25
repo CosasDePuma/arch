@@ -97,7 +97,6 @@ _user="${HACKVERSE_USER:-hacker}"
 
 \set -o errexit
 \set -o noglob
-\set -o nounset
 \trap 'log_err "User interrupt. Exiting..."' INT QUIT TERM
 
 
@@ -207,7 +206,7 @@ check_vm() { \dmesg | \awk '/Hypervisor detected:/{ print $5 }'; }
 clean_previous_installation() {
     \log_dbg 'Unmounting partitions...'; \umount -R "${_mountpoint}" 2>&1 | \dbg
     \log_dbg 'Removing disk partitions...'; \parted /dev/sda rm 1  2>&1 | \dbg; \parted /dev/sda rm 2  2>&1 | \dbg
-    \log_dbg 'Removing partition table...'; \parted /dev/sda mklabel msdos 2>&1 | \dbg
+    \log_dbg 'Removing partition table...'; \yes | \parted /dev/sda mklabel msdos 2>&1 | \dbg
 }
 
 # Usage: if is_uefi; then echo "UEFI"; else echo "BIOS"; fi
@@ -238,7 +237,7 @@ prepare_disks() {
 # Usage: prepare_disks_dos
 # Description: This function prepares the disks for the installation on BIOS systems (MS-DOS partition table)
 prepare_disks_dos() {
-    \log_dbg 'Creating partition table...'; \parted /dev/sda mklabel msdos 2>&1 | \dbg
+    \log_dbg 'Creating partition table...'; \yes | \parted /dev/sda mklabel msdos 2>&1 | \dbg
     \log_dbg 'Creating partitions...'; \parted /dev/sda mkpart primary fat32 1MiB 512MiB 2>&1 | \dbg; \parted /dev/sda mkpart primary ext4 512MiB 100% 2>&1 | \dbg
     \log_dbg 'Formatting partitions...'; \mkfs.fat -F32 /dev/sda1 2>&1 | \dbg; \mkfs.ext4 /dev/sda2 2>&1 | \dbg
     \log_dbg 'Mounting partitions...'; \mount --mkdir /dev/sda2 "${_mountpoint}" | \dbg; \mount --mkdir /dev/sda1 "${_mountpoint}"/boot | \dbg
