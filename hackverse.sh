@@ -8,6 +8,7 @@
 # TODO: GitHub actions
 # TODO: Detect disks
 # TODO: Swap file
+# TODO: Clean cache files automatically (https://ostechnix.com/recommended-way-clean-package-cache-arch-linux/) (pacman -Scc --noconfirm)
 
 # =========================================
 # ============== HACKERVERSE ==============
@@ -444,7 +445,7 @@ install_su_doas() {
     \log_msg '----------------- |  Installing DoAs  | -----------------'
     \log_dbg 'Installing doas...'; \pacstrap "${_mountpoint}" doas 2>&1 | \dbg
     \log_dbg 'Configuring doas...'; \echo "permit persist setenv {XAUTHORITY LANG LC_ALL PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin} :wheel" | \tee "${_mountpoint}/etc/doas.conf" | \dbg
-    \log_dbg 'Uninstalling sudo...'; \pacstrap -U "${_mountpoint}" sudo 2>&1 | \dbg
+    \log_dbg 'Uninstalling sudo...'; \arch-chroot "${_mountpoint}" /bin/sh -c "pacman -Rcu sudo" 2>&1 | \dbg
     \log_dbg 'Linking sudo to doas...'; \arch-chroot "${_mountpoint}" /bin/sh -c "ln -sf /usr/bin/doas /usr/bin/sudo" | \dbg
 }
 
