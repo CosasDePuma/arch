@@ -360,6 +360,22 @@ install_pkgs_linux() {
     \log_dbg 'Installing Linux kernel...'; \pacstrap -K "${_mountpoint}" linux linux-firmware linux-headers 2>&1 | \dbg
 }
 
+install_pkgs_kde() {
+    \log_msg '----------------- |  Installing KDE   | -----------------'
+    \log_dbg 'Installing KDE...'; \pacstrap "${_mountpoint}" 2>&1       \
+        acpid ark cronie dolphin firefox flameshot gwenview             \
+        kcal kinit kitty krunner kvantum                                \
+        noto-fonts ntp okular phonon-qt5 phonon-qt5-vlc                 \
+        pipewire pipewire-alsa pipewire-jack pipewire-pulse             \
+        plasma-desktop sddm tlp xf86-input-synaptics xsettingsd wireplumber | \dbg
+    \log_dbg 'Enabling SDDM...'; \arch-chroot "${_mountpoint}" /bin/sh -c "systemctl enable sddm" | \dbg # Simple Desktop Display Manager
+    \log_dbg 'Enabling TLP...'; \arch-chroot "${_mountpoint}" /bin/sh -c "systemctl enable tlp" | \dbg # Power management
+    \log_dbg 'Enabling NTP...'; \arch-chroot "${_mountpoint}" /bin/sh -c "systemctl enable ntpd" | \dbg # Network Time Protocol
+    \log_dbg 'Enabling acpid...'; \arch-chroot "${_mountpoint}" /bin/sh -c "systemctl enable acpid" | \dbg # Advanced Configuration and Power Interface
+    \log_dbg 'Enabling cronie...'; \arch-chroot "${_mountpoint}" /bin/sh -c "systemctl enable cronie" | \dbg # Cron jobs
+    \log_dbg 'Enabling pipewire...'; \arch-chroot "${_mountpoint}" /bin/sh -c "systemctl enable pipewire" | \dbg # Multimedia processing
+}
+
 
 # =========================================
 # =============== SERVICES ================
@@ -469,6 +485,7 @@ install_hackerverse() {
     \system_cfg_sumethod
     \system_cfg_user
     \install_pkgs_dev
+    \install_pkgs_kde
     \log_msg '--------------- |  Hackverse Installed  | ---------------'
     \log_msg "You can now reboot and login as '${_user}' with the password you set."
 }
