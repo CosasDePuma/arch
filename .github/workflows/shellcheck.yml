@@ -1,0 +1,23 @@
+---
+name: ShellCheck
+permissions: {}
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  shellcheck:
+    name: Check shell scripts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone the repo
+        uses: actions/checkout@v3
+      - name: Run ShellCheck
+        uses: ludeeus/action-shellcheck@master
+        with:
+          format: checkstyle
+          severity: style
